@@ -1,0 +1,132 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization;
+@inject IViewLocalizer localizar
+
+@{
+    ViewData["Title"] = "Listado Tareas";
+}
+
+<div class="text-center">
+    <h1 class="display-4">@localizar["Mis Tareas"]</h1>
+    <button type="button" class="btn btn-primary mb-3" onclick="agregarNuevaTareaAlListado()">
+        @localizar["Agregar nueva tarea"]
+    </button>
+</div>
+
+<div id="contenedor-listado-tareas" class="text-center">
+    <div id="reordenable" class="text-start" data-bind="foreach: tareas">
+        <div name="tarea" class="border mb-2 p-2" style="cursor:pointer" data-bind="click: manejarClickTarea">
+            <div data-bind="text: titulo, hidden: esNuevo" class="fw-bold">
+                <div name="pasos-resumen" data-bind="visible: pasosTotal()>0">
+                    <span data-bind="text: pasosRealizados">
+                    </span>/
+                    <span data-bind="text: porcentajeCompleCompletado">
+                    </span>
+                </div>
+                <input type="text" name="titulo-tarea" autocomplete="off" data-bind="value: titulo, visible: esNuevo,
+                attr:{'data-id':id},event: {focusout: manejarFocusoutTituloTarea}"/>
+
+            </div>
+        </div>
+    </div>
+    <div data-bind="visible: cargando" class="spinner-border">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+    <div data-bind="visible: noHayTareas">
+        No existen tareas para mostrar
+    </div>
+</div>
+
+<partial name="_ModalEditarTarea" />
+@section Scripts{
+    <script src="~/js/Tareas.js" asp-append-version="true">
+    </script>
+    <script src="~/js/Utilidades.js" asp-append-version="true">
+    </script>
+    <script src="~/js/Pasos.js" asp-append-version="true">
+    </script>
+    <script src="~/js/ArchivosAdjuntos.js" asp-append-version="true">
+    </script>
+    <script>
+        const urlTareas = "/api/tareas";
+        const urlPasos = "/api/pasos";
+        const urlArchivos = "api/Archivos";
+        
+        const modalEditarTarea = document.getElementById('modal-editar-tarea');
+        const modalEditarTareaBootstrap = new bootstrap.Modal(modalEditarTarea);
+        function tareaListadoViewModelFn(){
+            var self = this;
+            self.tareas = ko.observableArray([]);
+            self.cargando = ko.observable(true);
+
+            self.noHayTareas = ko.pureComputed(function(){
+                if(self.cargando())
+                {
+                    return false;
+                }
+                return self.tareas().length == 0;
+            })
+        }
+
+        function tareaElementoListadoViewModel({id, titulo,pasoTotal, pasosRealizados})
+        {
+            var self = this;
+            self.id = ko.observable(id);
+            self.titulo = ko.observable(titulo);
+            self.pasosTotal = ko.observable(pasosTotal);
+            self.pasosRealizados = ko.observable(pasosRealizado);
+            self.esNuevo = ko.pureComputed(function(){
+                return self.id() == 0;
+            })
+
+            self.porcentajeCompletado = ko.pureComputed(function(){
+                const calculo = Math.round(self.pasosRealizados() * 1.0 / self.pasosTotal()*100);
+
+                return `(${calculo})`
+            });
+        }
+
+        const tareaListadoViewModel = new tareaListadoViewModelFn();
+
+        ObtenerTareas();
+
+        ko.applyBindings(tareaListadoViewModel, document.getElementById('contenedor-listado-tareas'));
+        ko.applyBindings(tareaEditarVM, document.getElementById('modal-editar-tarea'));
+
+
+        const tareaEditarVM = {
+            id: 0,
+            titulo: ko.observable(''),
+            descripcion: ko.observable(''),
+            pasos: ko.observableArray([]),
+            archivosAdjuntos: ko.observableArray([])
+        }
+         function pasoViewModel({id,descripcion,realizado,modoEdicion})
+         {
+             var self = this;
+             self.id = ko.observable(id || 0);
+             self.descripcion = ko.observable(descripcion || '');
+             self.realizado = ko.observable(realizado);
+             self.descripcionAnterior = '';
+             self.modoEdicion = ko.observable(modoEdicion);
+
+             self.esNuevo = ko.pureComputed(function(){
+                
+                 return self.id() == 0;
+             
+             })
+
+         }
+
+         function archivoAdjuntoViewModel = ({id, titulo, publicado, modoEdicion, orden, url})
+         {
+             var self = this;
+             self.id = id;
+             self.titulo = ko.observable(titulo || '' );
+             self.publicado = publicado;
+             self.modoEdicion = ko.observable(modoEdicion);
+             self.orden = orden;
+             self.url = url;
+
+         }
+    </script>
+}

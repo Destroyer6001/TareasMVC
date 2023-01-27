@@ -1,0 +1,31 @@
+﻿@model CambiarContraseñaViewModel
+
+@{
+    ViewData["Title"] = "Cambiar Contraseña";
+    Layout = "../shared/_layout";
+}
+
+
+<h1>Cambiar Contraseña</h1>
+
+<form asp-action="CambiarContraseña" >
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="PasswordVieja" class="form-label"></label>
+        <input asp-for="PasswordVieja" class="form-control" />
+        <span asp-validation-for="PasswordVieja" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="PasswordNueva" class="form-label"></label>
+        <input asp-for="PasswordNueva" class="form-control" />
+        <span asp-validation-for="PasswordNueva" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="PasswordNuevaConfirmar" class="form-label"></label>
+        <input asp-for="PasswordNuevaConfirmar" class="form-control" />
+        <span asp-validation-for="PasswordNuevaConfirmar" class="text-danger"></span>
+    </div>
+
+    <button class="btn-primary btn">Guardar Cambios</button>
+    <a class="btn btn-success" asp-action="Index" asp-controller="Home">Regresar</a>
+</form>
